@@ -98,8 +98,12 @@ func mustNebulaP256CA(t *testing.T) (cert.Certificate, *ecdsa.PrivateKey) {
 		IsCA:      true,
 	}
 
+	// d is the private scalar value.
+	d, err := key.Bytes()
+	require.NoError(t, err)
+
 	// For P256 CAs, Sign expects the raw 32-byte scalar as the key.
-	nc, err := tbs.Sign(nil, cert.Curve_P256, key.D.FillBytes(make([]byte, 32)))
+	nc, err := tbs.Sign(nil, cert.Curve_P256, d)
 	require.NoError(t, err)
 	return nc, key
 }
@@ -237,7 +241,7 @@ func mustNebulaToken(t *testing.T, sub, iss, aud string, iat time.Time, sans []s
 		},
 		SANS: sans,
 	}
-	tok, err := jose.Signed(sig).Claims(claims).CompactSerialize()
+	tok, err := jose.Signed(sig).Claims(claims).Serialize()
 	require.NoError(t, err)
 
 	return tok
@@ -278,7 +282,7 @@ func mustNebulaSSHToken(t *testing.T, sub, iss, aud string, iat time.Time, opts 
 		}
 	}
 
-	tok, err := jose.Signed(sig).Claims(claims).CompactSerialize()
+	tok, err := jose.Signed(sig).Claims(claims).Serialize()
 	require.NoError(t, err)
 
 	return tok

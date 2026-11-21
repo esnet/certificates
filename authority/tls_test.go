@@ -80,7 +80,7 @@ func getDefaultSigner(a *Authority) crypto.Signer {
 	return a.x509CAService.(*softcas.SoftCAS).Signer
 }
 
-func generateCertificate(t *testing.T, commonName string, sans []string, opts ...interface{}) *x509.Certificate {
+func generateCertificate(t *testing.T, commonName string, sans []string, opts ...any) *x509.Certificate {
 	t.Helper()
 
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -187,7 +187,7 @@ func withSigner(issuer *x509.Certificate, signer crypto.Signer) signerFunc {
 	}
 }
 
-func getCSR(t *testing.T, priv interface{}, opts ...func(*x509.CertificateRequest)) *x509.CertificateRequest {
+func getCSR(t *testing.T, priv any, opts ...func(*x509.CertificateRequest)) *x509.CertificateRequest {
 	_csr := &x509.CertificateRequest{
 		Subject:  pkix.Name{CommonName: "smallstep test"},
 		DNSNames: []string{"test.smallstep.com"},
@@ -1551,7 +1551,7 @@ func TestAuthority_Revoke(t *testing.T) {
 				Audience:  validAudience,
 				ID:        "44",
 			}
-			raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+			raw, err := jose.Signed(sig).Claims(cl).Serialize()
 			require.NoError(t, err)
 
 			return test{
@@ -1591,7 +1591,7 @@ func TestAuthority_Revoke(t *testing.T) {
 				Audience:  validAudience,
 				ID:        "44",
 			}
-			raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+			raw, err := jose.Signed(sig).Claims(cl).Serialize()
 			require.NoError(t, err)
 
 			return test{
@@ -1631,7 +1631,7 @@ func TestAuthority_Revoke(t *testing.T) {
 				Audience:  validAudience,
 				ID:        "44",
 			}
-			raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+			raw, err := jose.Signed(sig).Claims(cl).Serialize()
 			require.NoError(t, err)
 
 			return test{
@@ -1670,7 +1670,7 @@ func TestAuthority_Revoke(t *testing.T) {
 				Audience:  validAudience,
 				ID:        "44",
 			}
-			raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+			raw, err := jose.Signed(sig).Claims(cl).Serialize()
 			require.NoError(t, err)
 			return test{
 				auth: _a,
@@ -1706,7 +1706,7 @@ func TestAuthority_Revoke(t *testing.T) {
 				Audience:  validAudience,
 				ID:        "44",
 			}
-			raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+			raw, err := jose.Signed(sig).Claims(cl).Serialize()
 			require.NoError(t, err)
 			return test{
 				auth: _a,
@@ -1798,7 +1798,7 @@ func TestAuthority_Revoke(t *testing.T) {
 				Audience:  validAudience,
 				ID:        "44",
 			}
-			raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+			raw, err := jose.Signed(sig).Claims(cl).Serialize()
 			require.NoError(t, err)
 			return test{
 				auth: a,
@@ -2013,7 +2013,7 @@ func TestAuthority_CRL(t *testing.T) {
 
 			var ex []string
 
-			for i := 0; i < 100; i++ {
+			for i := range 100 {
 				sn := fmt.Sprintf("%v", i)
 
 				cl := jose.Claims{
@@ -2024,7 +2024,7 @@ func TestAuthority_CRL(t *testing.T) {
 					Audience:  validAudience,
 					ID:        sn,
 				}
-				raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+				raw, err := jose.Signed(sig).Claims(cl).Serialize()
 				require.NoError(t, err)
 				err = a.Revoke(crlCtx, &RevokeOptions{
 					Serial:     sn,
@@ -2078,7 +2078,7 @@ func TestAuthority_CRL(t *testing.T) {
 			var ex []string
 			zeroReasonCode := 0
 
-			for i := 0; i < 5; i++ {
+			for i := range 5 {
 				sn := fmt.Sprintf("%v", i)
 				cl := jose.Claims{
 					Subject:   sn,
@@ -2088,7 +2088,7 @@ func TestAuthority_CRL(t *testing.T) {
 					Audience:  validAudience,
 					ID:        sn,
 				}
-				raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+				raw, err := jose.Signed(sig).Claims(cl).Serialize()
 				require.NoError(t, err)
 				err = a.Revoke(crlCtx, &RevokeOptions{
 					Serial:     sn,

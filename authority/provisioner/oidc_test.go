@@ -247,7 +247,7 @@ func TestOIDC_authorizeToken(t *testing.T) {
 		{"ok no email", p3, args{t5}, http.StatusOK, issuer, nil},
 		{"fail-domain", p3, args{failDomain}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken: validatePayload: failed to validate oidc token payload: email "name@example.com" is not allowed`)},
 		{"fail-key", p1, args{failKey}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken; cannot validate oidc token`)},
-		{"fail-token", p1, args{failTok}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken; error parsing oidc token: invalid character '~' looking for beginning of value`)},
+		{"fail-token", p1, args{failTok}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken; error parsing oidc token: go-jose/go-jose: invalid protected header`)},
 		{"fail-claims", p1, args{failClaims}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken; error parsing oidc token claims: invalid character '~' looking for beginning of value`)},
 		{"fail-issuer", p1, args{failIss}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken: validatePayload: failed to validate oidc token payload: go-jose/go-jose/jwt: validation failed, invalid issuer claim (iss)`)},
 		{"fail-audience", p1, args{failAud}, http.StatusUnauthorized, "", errors.New(`oidc.AuthorizeToken: validatePayload: failed to validate oidc token payload: go-jose/go-jose/jwt: validation failed, invalid audience claim (aud)`)},
@@ -577,7 +577,7 @@ func TestOIDC_AuthorizeSSHSign(t *testing.T) {
 	type args struct {
 		token   string
 		sshOpts SignSSHOptions
-		key     interface{}
+		key     any
 	}
 	tests := []struct {
 		name        string
@@ -618,7 +618,7 @@ func TestOIDC_AuthorizeSSHSign(t *testing.T) {
 		{"fail-user-host", p1, args{t1, SignSSHOptions{CertType: "host"}, pub}, nil, http.StatusOK, false, true},
 		{"fail-getIdentity", p5, args{failGetIdentityToken, SignSSHOptions{}, pub}, nil, http.StatusInternalServerError, true, false},
 		{"fail-sshCA-disabled", p6, args{"foo", SignSSHOptions{}, pub}, nil, http.StatusUnauthorized, true, false},
-		// Missing parametrs
+		// Missing parameters
 		{"fail-admin-type", p3, args{okAdmin, SignSSHOptions{KeyID: "root@example.com", Principals: []string{"root@example.com"}}, pub}, nil, http.StatusUnauthorized, false, true},
 		{"fail-admin-key-id", p3, args{okAdmin, SignSSHOptions{CertType: "user", Principals: []string{"root@example.com"}}, pub}, nil, http.StatusUnauthorized, false, true},
 		{"fail-admin-principals", p3, args{okAdmin, SignSSHOptions{CertType: "user", KeyID: "root@example.com"}, pub}, nil, http.StatusUnauthorized, false, true},

@@ -344,7 +344,7 @@ func TestAzure_authorizeToken(t *testing.T) {
 				Version:          "the-version",
 				XMSMirID:         "foo",
 			}
-			tok, err := jose.Signed(sig).Claims(claims).CompactSerialize()
+			tok, err := jose.Signed(sig).Claims(claims).Serialize()
 			assert.FatalError(t, err)
 			return test{
 				p:     p,
@@ -680,7 +680,7 @@ func TestAzure_AuthorizeSSHSign(t *testing.T) {
 	type args struct {
 		token   string
 		sshOpts SignSSHOptions
-		key     interface{}
+		key     any
 	}
 	tests := []struct {
 		name        string

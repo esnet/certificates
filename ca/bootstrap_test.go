@@ -140,7 +140,7 @@ func generateBootstrapToken(ca, subject, sha string) string {
 		},
 		SANS: []string{subject},
 	}
-	raw, err := jose.Signed(sig).Claims(cl).CompactSerialize()
+	raw, err := jose.Signed(sig).Claims(cl).Serialize()
 	if err != nil {
 		panic(err)
 	}
@@ -658,13 +658,11 @@ func TestBootstrapListener(t *testing.T) {
 				return
 			}
 			wg := new(sync.WaitGroup)
-			wg.Add(1)
-			go func() {
+			wg.Go(func() {
 				http.Serve(lis, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					w.Write([]byte("ok"))
 				}))
-				wg.Done()
-			}()
+			})
 			defer wg.Wait()
 			defer lis.Close()
 

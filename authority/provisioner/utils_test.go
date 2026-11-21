@@ -86,7 +86,7 @@ O4vZCKd4vzljH6eL+OECQHHxhYoTW7lFpKGnUDG9fPZ3eYzWpgka6w1vvBk10BAu
 6fbwppM9pQ7DPMg7V6YGEjjT0gX9B9TttfHxGhvtZNQ=
 -----END RSA PRIVATE KEY-----`
 
-func must(args ...interface{}) []interface{} {
+func must(args ...any) []any {
 	if l := len(args); l > 0 && args[l-1] != nil {
 		if err, ok := args[l-1].(error); ok {
 			panic(err)
@@ -110,7 +110,7 @@ func generateJSONWebKey() (*jose.JSONWebKey, error) {
 
 func generateJSONWebKeySet(n int) (jose.JSONWebKeySet, error) {
 	var keySet jose.JSONWebKeySet
-	for i := 0; i < n; i++ {
+	for range n {
 		key, err := generateJSONWebKey()
 		if err != nil {
 			return jose.JSONWebKeySet{}, err
@@ -192,7 +192,7 @@ func generateJWK() (*JWK, error) {
 	return p, err
 }
 
-func generateK8sSA(inputPubKey interface{}) (*K8sSA, error) {
+func generateK8sSA(inputPubKey any) (*K8sSA, error) {
 	fooPubB, err := os.ReadFile("./testdata/certs/foo.pub")
 	if err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func generateK8sSA(inputPubKey interface{}) (*K8sSA, error) {
 		return nil, err
 	}
 
-	pubKeys := []interface{}{fooPub, barPub}
+	pubKeys := []any{fooPub, barPub}
 	if inputPubKey != nil {
 		pubKeys = append(pubKeys, inputPubKey)
 	}
@@ -625,7 +625,7 @@ func generateAzureWithServer() (*Azure, *httptest.Server, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	writeJSON := func(w http.ResponseWriter, v interface{}) {
+	writeJSON := func(w http.ResponseWriter, v any) {
 		b, err := json.Marshal(v)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -688,14 +688,14 @@ func generateAzureWithServer() (*Azure, *httptest.Server, error) {
 
 func generateCollection(nJWK, nOIDC int) (*Collection, error) {
 	col := NewCollection(testAudiences)
-	for i := 0; i < nJWK; i++ {
+	for range nJWK {
 		p, err := generateJWK()
 		if err != nil {
 			return nil, err
 		}
 		col.Store(p)
 	}
-	for i := 0; i < nOIDC; i++ {
+	for range nOIDC {
 		p, err := generateOIDC()
 		if err != nil {
 			return nil, err
@@ -767,7 +767,7 @@ func generateToken(sub, iss, aud, email string, sans []string, iat time.Time, jw
 		Email: email,
 		SANS:  sans,
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func generateCustomToken(sub, iss, aud string, jwk *jose.JSONWebKey, extraHeaders, extraClaims map[string]any) (string, error) {
@@ -798,7 +798,7 @@ func generateCustomToken(sub, iss, aud string, jwk *jose.JSONWebKey, extraHeader
 		Expiry:    jose.NewNumericDate(iat.Add(5 * time.Minute)),
 		Audience:  []string{aud},
 	}
-	return jose.Signed(sig).Claims(claims).Claims(extraClaims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Claims(extraClaims).Serialize()
 }
 
 func generateOIDCToken(sub, iss, aud, email, preferredUsername string, iat time.Time, jwk *jose.JSONWebKey, tokOpts ...tokOption) (string, error) {
@@ -839,7 +839,7 @@ func generateOIDCToken(sub, iss, aud, email, preferredUsername string, iat time.
 		Email:             email,
 		PreferredUsername: preferredUsername,
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func generateX5CSSHToken(jwk *jose.JSONWebKey, claims *x5cPayload, tokOpts ...tokOption) (string, error) {
@@ -857,7 +857,7 @@ func generateX5CSSHToken(jwk *jose.JSONWebKey, claims *x5cPayload, tokOpts ...to
 	if err != nil {
 		return "", err
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func getK8sSAPayload() *k8sSAPayload {
@@ -891,7 +891,7 @@ func generateK8sSAToken(jwk *jose.JSONWebKey, claims *k8sSAPayload, tokOpts ...t
 	if claims == nil {
 		claims = getK8sSAPayload()
 	}
-	return jose.Signed(sig).Claims(*claims).CompactSerialize()
+	return jose.Signed(sig).Claims(*claims).Serialize()
 }
 
 func generateSimpleSSHUserToken(iss, aud string, jwk *jose.JSONWebKey) (string, error) {
@@ -939,7 +939,7 @@ func generateSSHToken(sub, iss, aud string, iat time.Time, sshOpts *SignSSHOptio
 			SSH: sshOpts,
 		},
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func generateGCPToken(sub, iss, aud, instanceID, instanceName, projectID, zone string, iat time.Time, jwk *jose.JSONWebKey) (string, error) {
@@ -977,7 +977,7 @@ func generateGCPToken(sub, iss, aud, instanceID, instanceName, projectID, zone s
 			},
 		},
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func generateAWSToken(p *AWS, sub, iss, aud, accountID, instanceID, privateIP, region string, iat time.Time, key crypto.Signer) (string, error) {
@@ -1034,7 +1034,7 @@ func generateAWSToken(p *AWS, sub, iss, aud, accountID, instanceID, privateIP, r
 			Signature: signature,
 		},
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func generateAzureToken(sub, iss, aud, tenantID, subscriptionID, resourceGroup, resourceName, resourceType string, iat time.Time, jwk *jose.JSONWebKey) (string, error) {
@@ -1072,7 +1072,7 @@ func generateAzureToken(sub, iss, aud, tenantID, subscriptionID, resourceGroup, 
 		Version:          "the-version",
 		XMSMirID:         xmsMirID,
 	}
-	return jose.Signed(sig).Claims(claims).CompactSerialize()
+	return jose.Signed(sig).Claims(claims).Serialize()
 }
 
 func parseToken(token string) (*jose.JSONWebToken, *jose.Claims, error) {
@@ -1108,7 +1108,7 @@ func generateJWKServerHandler(n int, srv *httptest.Server) http.Handler {
 	hits := struct {
 		Hits int `json:"hits"`
 	}{}
-	writeJSON := func(w http.ResponseWriter, v interface{}) {
+	writeJSON := func(w http.ResponseWriter, v any) {
 		b, err := json.Marshal(v)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
